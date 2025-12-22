@@ -29,9 +29,7 @@ class ConnectivityObserverImpl(
             scope.launch { _status.value = ConnectivityObserver.Status.Available }
         }
 
-        override fun onLosing(network: Network, maxMsToLive: Int) {
-            scope.launch { _status.value = ConnectivityObserver.Status.Losing }
-        }
+        override fun onLosing(network: Network, maxMsToLive: Int) { }
 
         override fun onLost(network: Network) {
             scope.launch { _status.value = ConnectivityObserver.Status.Lost }

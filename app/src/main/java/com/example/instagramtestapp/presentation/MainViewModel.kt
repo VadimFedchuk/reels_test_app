@@ -29,8 +29,7 @@ class MainViewModel(
                             isLoading = false,
                             errorMessage = TextResource.StringResource(R.string.no_internet_connection_error))
                     }
-                }
-                else {
+                } else {
                     _state.update { it.copy(errorMessage = null) }
                     loadClips()
                 }
