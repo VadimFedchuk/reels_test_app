@@ -10,7 +10,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.media3.common.MediaItem
@@ -56,6 +58,8 @@ fun ClipsPager(clips: List<Clip>) {
     val players = remember { mutableStateMapOf<Int, ExoPlayer>() }
     val boundClipId = remember { mutableStateMapOf<Int, String>() }
 
+    var activeTapIcon by remember { mutableStateOf<TapIcon?>(null) }
+
     fun createPlayer(): ExoPlayer {
         return ExoPlayer.Builder(context).build().apply {
             repeatMode = Player.REPEAT_MODE_ONE
@@ -94,6 +98,7 @@ fun ClipsPager(clips: List<Clip>) {
             players.remove(page)?.release()
             boundClipId.remove(page)
         }
+        activeTapIcon = null
     }
 
     DisposableEffect(Unit) {
@@ -110,12 +115,30 @@ fun ClipsPager(clips: List<Clip>) {
         beyondViewportPageCount = 1
     ) { virtualPage ->
         val clip = clipFor(virtualPage)
-
+        val isActive = virtualPage == activePage
         val playerForPage = players[virtualPage]
+
+        fun toggle() {
+            val p = playerForPage ?: return
+            val willPlay = !p.isPlaying
+            if (willPlay) {
+                p.playWhenReady = true
+                p.play()
+                activeTapIcon = TapIcon.PLAY
+            } else {
+                p.pause()
+                p.playWhenReady = false
+                activeTapIcon = TapIcon.PAUSE
+            }
+        }
 
         ClipPage(
             clip = clip,
-            player = playerForPage
+            player = playerForPage,
+            isActive = isActive,
+            onTogglePlayPause = ::toggle,
+            tapIcon = if (isActive) activeTapIcon else null,
+            onTapIconConsumed = { if (isActive) activeTapIcon = null }
         )
     }
 }
